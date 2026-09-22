@@ -28,12 +28,14 @@ fn main() -> io::Result<()> {
 fn run (terminal: &mut Terminal<CrosstermBackend<io::Stdout>>) -> io::Result<()> {
     let mut app = app::App::default();
     loop {
-        terminal.draw(|frame| ui::draw(fraame, &app))?;
-        if let Event::key(key) = event::read()? {
-            if key.kind == KeyEventkind::Press && app.handle_key(key.code) {
-                breal;
+        terminal.draw(|frame| ui::draw(frame, &app))?;
+        if let Event::Key(key) = event::read()? {
+            if key.kind == KeyEventKind::Press && app.handle_key(key.code) {
+                break;
             }
         }
     }
     Ok(())
 }
+
+// this is bad code lol
