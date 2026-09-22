@@ -1,7 +1,8 @@
 mod app;
 mod ui;
+mod net;
+use std::{io, sync::mpsc, time::Duration};
 
-use std::io;
 
 use crossterm::{
     event::{self, Event, KeyEventKind},
@@ -26,16 +27,30 @@ fn main() -> io::Result<()> {
 }
 
 fn run (terminal: &mut Terminal<CrosstermBackend<io::Stdout>>) -> io::Result<()> {
+
+    let (tx, rx) = mpsc::channel();
+    let name = std::env::var("USER").unwrap_or_else(|_| "me".to_string());
+
+    net::start(name, tx);
+
     let mut app = app::App::default();
+
     loop {
         terminal.draw(|frame| ui::draw(frame, &app))?;
-        if let Event::Key(key) = event::read()? {
-            if key.kind == KeyEventKind::Press && app.handle_key(key.code) {
-                break;
+
+        if let Ok(net::Event::PeerFound { name, addr}) =rx.try_recv() {
+            app.peers.push(format!("{name} at {addr}"));
+        }
+
+        while event::poll(Duration::from_millis(100))?{
+            if let Event::Key(key) = event::read()? {
+                if key.kind == KeyEventKind::Press && app.handle_key(key.code){
+                    return Ok(());
+                }
             }
         }
+
     }
-    Ok(())
 }
 
 // this is bad code lol
