@@ -4,7 +4,7 @@ mod ui;
 use std::io;
 
 use crossterm::{
-    event::{self, Event, KeyEventkind},
+    event::{self, Event, KeyEventKind},
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
