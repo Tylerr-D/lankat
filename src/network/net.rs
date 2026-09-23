@@ -37,8 +37,7 @@ pub fn start(name:String, tx: Sender<Event>) {
                         tx.send(Event::PeerFound {
                             name: name.to_string(),
                             addr,
-                        })
-                            .expect("pass peer to ui");
+                        }).expect("pass peer to ui");
                     }
                 }
             }
