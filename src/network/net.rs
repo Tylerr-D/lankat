@@ -13,15 +13,15 @@ pub enum Event {
 }
 
 pub fn start(name:String, tx: Sender<Event>) {
-    thread::spawn(move || { 
+    thread::spawn(move || {
         let socket = UdpSocket::bind("0.0.0.0:0").expect("announce socket");
         socket.set_broadcast(true).expect("enable broadcast");
         let packet = format!("lankat:{name}");
 
         loop {
             socket.send_to(packet.as_bytes(), ("255.255.255.255", PORT)).ok();
-            thread::sleep(Duration::from_secs(1)); 
-        } 
+            thread::sleep(Duration::from_secs(1));
+        }
     });
 
     thread::spawn(move || {

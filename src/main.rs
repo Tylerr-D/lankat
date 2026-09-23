@@ -1,23 +1,27 @@
-mod app;
-mod ui;
-mod net;
-use std::{
-    io,
-    sync::mpsc,
-    time::Duration
-};
+pub mod app;
+pub mod network;
+
 use crossterm::{
     event::{self, Event, KeyEventKind},
     execute,
     terminal::{
-        disable_raw_mode,
-        enable_raw_mode,
         EnterAlternateScreen,
         LeaveAlternateScreen
-    },
+        ,
+        disable_raw_mode,
+        enable_raw_mode},
+};
+use std::{
+    io,
+    sync::mpsc,
+    time::Duration,
 };
 
-use ratatui::{backend::CrosstermBackend, Terminal};
+use network::net;
+use ratatui::{Terminal, backend::CrosstermBackend};
+
+use app::app::App;
+use app::ui;
 
 fn main() -> io::Result<()> {
     enable_raw_mode()?;
@@ -39,7 +43,7 @@ fn run (terminal: &mut Terminal<CrosstermBackend<io::Stdout>>) -> io::Result<()>
 
     net::start(name, tx);
 
-    let mut app = app::App::default();
+    let mut app = App::default();
 
     loop {
         terminal.draw(|frame| ui::draw(frame, &app))?;

@@ -4,7 +4,7 @@ use ratatui::{
     widgets::{Block, Borders, List, ListItem, Paragraph},
 };
 
-use crate::app::App;
+use crate::app::app::App;
 
 // so i will divide it into 2 big boxes
 // umm peers and chat
@@ -25,7 +25,7 @@ pub fn draw(frame: &mut Frame, app: &App) {
 fn draw_peers(frame: &mut Frame, app:&App, area: Rect) {
     // the list of the peers
     // why is this shi so over complicated for no reason??
-    
+
     // i feel like im just here for shits and giggles, i could never figure this out holy
 
     let items: Vec<ListItem> = app.peers
