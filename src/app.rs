@@ -7,12 +7,11 @@ pub struct App {
 }
 
 impl App {
-
     pub fn handle_key(&mut self, code: KeyCode) -> bool {
         match code {
             KeyCode::Char('q') | KeyCode::Esc => return true,
             KeyCode::Char(c) => self.input.push(c),
-            KeyCode::Backspace => {self.input.pop();}
+            KeyCode::Backspace => { self.input.pop(); }
             KeyCode::Enter => self.send(),
             _ => {}
         }
@@ -21,7 +20,7 @@ impl App {
 
     fn send(&mut self) {
         let text = self.input.trim().to_string();
-        if !text.is_empty(){
+        if !text.is_empty() {
             self.messages.push(format!("me:{text}"));
             self.input.clear();
         }
