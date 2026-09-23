@@ -1,12 +1,12 @@
 use axum::{
-    extract::Ws::{Message, WebSocket, WebSocketUpgrade},
+    extract::ws::{Message, WebSocket, WebSocketUpgrade},
     response::{Html, Response},
     routing::get,
     Router,
 };
 
 pub fn start(){
-    std::thread""spawn(|| {
+    std::thread::spawn(|| {
         let rt = tokio::runtime::Runtime::new().expect("tokio runtime");
         rt.block_on(serve());
     });
@@ -27,6 +27,15 @@ async fn index() -> Html<&'static str> {
     Html(INDEX)
 }
 
+async fn style() -> Response {
+([(header::CONTENT_TYPE, "text/css")], STYLE).into_response()
+}
+
+async fn script() -> Response {
+    ([(header::CONTENT_TYPE, "text/javascript")], SCRIPT).into_response()
+}
+
+
 async fn ws_conn(mut socket: WebSocket){
     while let SOme(Ok(Message::Text(text))) = socket.recv().await {
         let reply = format!("echo: {}", text.to_string());
@@ -35,3 +44,5 @@ async fn ws_conn(mut socket: WebSocket){
 }
 
 const INDEX: &str = include_str!("index.html");
+const STYLE: &str = include_str!("style.css");
+const SCRIPT: &str = include_str!("app.js");

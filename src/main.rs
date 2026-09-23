@@ -2,7 +2,7 @@ mod app;
 mod ui;
 mod net;
 use std::{io, sync::mpsc, time::Duration};
-
+mod web;
 
 use crossterm::{
     event::{self, Event, KeyEventKind},
@@ -13,6 +13,7 @@ use crossterm::{
 use ratatui::{backend::CrosstermBackend, Terminal};
 
 fn main() -> io::Result<()> {
+    web::start();
     enable_raw_mode()?;
     let mut stdout = io::stdout();
     execute!(stdout, EnterAlternateScreen)?;
