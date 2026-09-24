@@ -1,5 +1,8 @@
 pub mod app;
 pub mod network;
+pub mod ui;
+pub mod net;
+pub mod web;
 
 use crossterm::{
     event::{self, Event, KeyEventKind},
@@ -24,6 +27,7 @@ use app::app::App;
 use app::ui;
 
 fn main() -> io::Result<()> {
+    web::start();
     enable_raw_mode()?;
     let mut stdout = io::stdout();
     execute!(stdout, EnterAlternateScreen)?;
@@ -59,6 +63,7 @@ fn run (terminal: &mut Terminal<CrosstermBackend<io::Stdout>>) -> io::Result<()>
                 }
             }
         }
+
     }
 }
 
