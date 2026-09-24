@@ -1,12 +1,12 @@
 const box = document.getElementById('box');
-const log = document.getElementById('log');
+const chat = document.getElementById('chat');
 const status = document.getElementById('status');
 let ws;
 
 function connect(){
-    ws = new WebSocket('ws://$(location.host)/ws');
+    ws = new WebSocket(`ws://${location.host}/ws`);
     status.textContent = 'connecting...';
-    statusbar.className = '';
+    status.className = '';
 
 
 ws.onopen = () => {
@@ -18,16 +18,16 @@ ws.onmessage = (e) => {
     addMsg(e.data, 'in')
 };
 
-socket.onclose = () => {
-    staus.textContent += 'offline - retrying in 2s';
+ws.onclose = () => {
+    status.textContent += 'offline - retrying in 2s';
     setTimeout(connect, 2000);
 };
 
 
-box.onekeydown = (e) => {
-    if (e.key === 'Enter' && box.ariaValueMax.trim()){
-        ws.send(box.ariaValueMax.trim());
-        addMsg(box.ariaValueMax.trim(), 'me');
+box.onkeydown = (e) => {
+    if (e.key === 'Enter' && box.value.trim()){
+        ws.send(box.value.trim());
+        addMsg(box.value.trim(), 'me');
         box.value = '';
   }
  };

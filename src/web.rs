@@ -43,10 +43,7 @@ async fn ws_upgrade(ws: WebSocketUpgrade) -> Response {
 }
 
 async fn ws_conn(mut socket: WebSocket){
-    while let Some(Ok(Message::Text(text))) = socket.recv().await {
-        let reply = format!("echo: {}", text.to_string());
-        let _ = socket.send(Message::Text(reply.into())).await;
-    }
+    while let Some(Ok(_)) = socket.recv().await {}
 }
 
 const INDEX: &str = include_str!("index.html");
