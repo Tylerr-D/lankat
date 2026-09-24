@@ -12,7 +12,8 @@ pub enum Event {
     },
 }
 
-pub fn start(name:String, tx: Sender<Event>) {
+
+pub fn start(name: String, tx: Sender<Event>) {
     thread::spawn(move || {
         let socket = UdpSocket::bind("0.0.0.0:0").expect("announce socket");
         socket.set_broadcast(true).expect("enable broadcast");
