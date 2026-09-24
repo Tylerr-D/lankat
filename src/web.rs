@@ -1,6 +1,7 @@
 use axum::{
     extract::ws::{Message, WebSocket, WebSocketUpgrade},
-    response::{Html, Response},
+        http::header,
+    response::{Html, IntoResponse, Response},
     routing::get,
     Router,
 };
@@ -15,6 +16,8 @@ pub fn start(){
 async fn serve(){
     let app = Router::new()
     .route("/", get(index))
+    .route("/style.css", get(style))
+    .route("/app.js", get(script))
     .route("/ws", get(ws_upgrade));
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8080")
@@ -35,9 +38,12 @@ async fn script() -> Response {
     ([(header::CONTENT_TYPE, "text/javascript")], SCRIPT).into_response()
 }
 
+async fn ws_upgrade(ws: WebSocketUpgrade) -> Response {
+    ws.on_upgrade(ws_conn)
+}
 
 async fn ws_conn(mut socket: WebSocket){
-    while let SOme(Ok(Message::Text(text))) = socket.recv().await {
+    while let Some(Ok(Message::Text(text))) = socket.recv().await {
         let reply = format!("echo: {}", text.to_string());
         let _ = socket.send(Message::Text(reply.into())).await;
     }

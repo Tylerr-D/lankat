@@ -1,26 +1,22 @@
-use std::net::{IpAddr, TcpListener, SocketAddr, UdpSocket};
+use std::net::{SocketAddr, UdpSocket};
 use std::sync::mpsc::Sender;
 use std::thread;
 use std::time::Duration;
 
-pub const UDP_PORT: u16 = 42424;
-pub const TCP_PORT: u16 = 42425;
+pub const PORT: u16 = 42424;
 
 pub enum Event {
     PeerFound { name: String, addr: SocketAddr},
-    PeerConnected {ip: IpAddr, stream: TcpStream},
-    Message {ip: IpAddr, text: String},
 }
 
 
-pub fn start(tx: Sender<Event>){
+pub fn start(name: String, tx: Sender<Event>){
 
-    let listen_tx = tx.clone()
     thread::spawn(move || {
 
         let socket = UdpSocket::bind("0.0.0.0:0").expect("announce socket");
         socket.set_broadcast(true).expect("enable broadcast");
-        let packet = format!("lankat:{name}", whoami(), TCP_PORT);
+        let packet = format!("lankat:{name}");
 
         loop {
             socket.send_to(packet.as_bytes(), ("255.255.255.255", PORT)).ok();
