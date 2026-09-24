@@ -1,7 +1,6 @@
-pub mod app;
+pub mod tui;
 pub mod network;
-pub mod net;
-pub mod web;
+pub mod webpage;
 
 use crossterm::{
     event::{self, Event, KeyEventKind},
@@ -11,7 +10,7 @@ use crossterm::{
         LeaveAlternateScreen
         ,
         disable_raw_mode,
-        enable_raw_mode
+        enable_raw_mode,
     },
 };
 use std::{
@@ -20,14 +19,16 @@ use std::{
     time::Duration,
 };
 
-use app::app::App;
-use app::ui;
-
 use ratatui::{
     Terminal,
-    backend::CrosstermBackend
+    backend::CrosstermBackend,
 };
 
+use tui::app::App;
+use tui::ui;
+
+use crate::webpage::web;
+use crate::network::net;
 
 fn main() -> io::Result<()> {
     web::start();

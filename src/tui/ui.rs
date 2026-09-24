@@ -4,7 +4,7 @@ use ratatui::{
     widgets::{Block, Borders, List, ListItem, Paragraph},
 };
 
-use crate::app::app::App;
+use crate::tui::app::App;
 
 // so i will divide it into 2 big boxes
 // umm peers and chat
