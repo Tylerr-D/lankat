@@ -1,6 +1,5 @@
 pub mod app;
 pub mod network;
-pub mod ui;
 pub mod net;
 pub mod web;
 
@@ -12,7 +11,8 @@ use crossterm::{
         LeaveAlternateScreen
         ,
         disable_raw_mode,
-        enable_raw_mode},
+        enable_raw_mode
+    },
 };
 use std::{
     io,
@@ -20,11 +20,14 @@ use std::{
     time::Duration,
 };
 
-use network::net;
-use ratatui::{Terminal, backend::CrosstermBackend};
-
 use app::app::App;
 use app::ui;
+
+use ratatui::{
+    Terminal,
+    backend::CrosstermBackend
+};
+
 
 fn main() -> io::Result<()> {
     web::start();
