@@ -1,7 +1,32 @@
 const box = document.getElementById('box');
 const chat = document.getElementById('chat');
 const status = document.getElementById('status');
+const sendBtn = document.getElementById('send');
 let ws;
+
+function send(){
+    const text = box.value.trim();
+    if (!text || ws.readyState !== WebSocket.OPEN) return;
+    ws.send(text);
+    addMsg(text, 'me');
+    box.value = '';
+    box.focus();
+}
+
+function addMsg(text, who){
+    const div = document.createElement('div');
+    div.className = who;
+    const label = document.createElement('span');
+    label.className = 'who';
+    const time = new Date().toTimeString().slice(0, 5);
+    label.textContent = (who === 'me' ? 'me' : 'peer') +' - ' + time;
+    const body = document.createElement("span");
+    body.textContent = text;
+    div.append(label, body);
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+}
+
 
 function connect(){
     ws = new WebSocket(`ws://${location.host}/ws`);
@@ -25,20 +50,12 @@ ws.onclose = () => {
 
 
 box.onkeydown = (e) => {
-    if (e.key === 'Enter' && box.value.trim()){
-        ws.send(box.value.trim());
-        addMsg(box.value.trim(), 'me');
-        box.value = '';
-  }
- };
-}
+    if (e.key === 'Enter') 
+        send();
+};
 
-function addMsg(text, who){
-    const div = document.createElement('div');
-    div.className = who;
-    div.textContent = text;
-    chat.appendChild(div);
-    chat.scrollTop = chat.scrollHeight;
-}
+};
+sendBtn.onclick = send;
 
 connect();
+

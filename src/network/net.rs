@@ -10,6 +10,9 @@ pub enum Event {
         name: String,
         addr: SocketAddrV4
     },
+    WebMessage {
+        text: String
+    },
 }
 
 
