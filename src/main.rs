@@ -53,41 +53,40 @@ fn main() -> io::Result<()> {
 }
 
 fn run (terminal: &mut Terminal<CrosstermBackend<io::Stdout>>, rx: mpsc::Receiver<net::Event>, out_tx: tokio::sync::mpsc::Sender<String>,) -> io::Result<()> {
-
     let mut app = App::default();
 
     loop {
         terminal.draw(|frame| ui::draw(frame, &app))?;
 
-        while let Ok(ev) = rx.try_recv(){
+        while let Ok(ev) = rx.try_recv() {
             match ev {
-                net::Event::PeerFound {name, addr} => {
+                net::Event::PeerFound { name, addr } => {
                     app.peers.push(format!("{name} at {addr}"));
                 }
-                net::Event::WebMessage {text} => {
+                net::Event::WebMessage { text } => {
                     app.messages.push(format!("web: {text}"));
                 }
             }
-        while let Ok(net::Event::PeerFound { name, addr }) = rx.try_recv() {
-            let peer_str = format!("{name} at {addr}");
-            if !app.peers.contains(&peer_str) {
-                app.peers.push(peer_str);
+            while let Ok(net::Event::PeerFound { name, addr }) = rx.try_recv() {
+                let peer_str = format!("{name} at {addr}");
+                if !app.peers.contains(&peer_str) {
+                    app.peers.push(peer_str);
+                }
             }
-        }
 
-        while event::poll(Duration::from_millis(100))? {
-            if let Event::Key(key) = event::read()? {
-                if key.kind != KeyEventKind::Press {
-                    continue;
-                }
-                if key.code == KeyCode::Enter && !app.input.trim().is_empty(){
-                    let text = app.input.trim().to_string();
-                    app.handle_key(key.code);
+            while event::poll(Duration::from_millis(100))? {
+                if let Event::Key(key) = event::read()? {
+                    if key.kind != KeyEventKind::Press {
+                        continue;
+                    }
+                    if key.code == KeyCode::Enter && !app.input.trim().is_empty() {
+                        let text = app.input.trim().to_string();
+                        app.handle_key(key.code);
 
-                    let _ = out_tx.try_send(text);
-                }
-                else if app.handle_key(key.code){
-                    return Ok(());
+                        let _ = out_tx.try_send(text);
+                    } else if app.handle_key(key.code) {
+                        return Ok(());
+                    }
                 }
             }
         }
