@@ -56,8 +56,11 @@ fn run (terminal: &mut Terminal<CrosstermBackend<io::Stdout>>) -> io::Result<()>
     loop {
         terminal.draw(|frame| ui::draw(frame, &app))?;
 
-        if let Ok(net::Event::PeerFound { name, addr }) = rx.try_recv() {
-            app.peers.push(format!("{name} at {addr}"));
+        while let Ok(net::Event::PeerFound { name, addr }) = rx.try_recv() {
+            let peer_str = format!("{name} at {addr}");
+            if !app.peers.contains(&peer_str) {
+                app.peers.push(peer_str);
+            }
         }
 
         while event::poll(Duration::from_millis(100))? {
@@ -67,7 +70,6 @@ fn run (terminal: &mut Terminal<CrosstermBackend<io::Stdout>>) -> io::Result<()>
                 }
             }
         }
-
     }
 }
 
