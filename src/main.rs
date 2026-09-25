@@ -74,22 +74,22 @@ fn run (
                     app.messages.push(format!("web: {text}"));
                 }
             }
+        }
 
-            if event::poll(Duration::from_millis(50))? {
-                let Event::Key(key) = event::read()? else { continue };
+        if event::poll(Duration::from_millis(50))? {
+            let Event::Key(key) = event::read()? else { continue };
 
-                if key.kind != KeyEventKind::Press {
-                    continue
-                }
+            if key.kind != KeyEventKind::Press {
+                continue
+            }
 
-                if key.code == KeyCode::Enter && !app.input.trim().is_empty() {
-                    let text = app.input.trim().to_string();
-                    app.handle_key(key.code);
+            if key.code == KeyCode::Enter && !app.input.trim().is_empty() {
+                let text = app.input.trim().to_string();
+                app.handle_key(key.code);
 
-                    let _ = out_tx.try_send(text);
-                } else if app.handle_key(key.code) {
-                    return Ok(());
-                }
+                let _ = out_tx.try_send(text);
+            } else if app.handle_key(key.code) {
+                return Ok(());
             }
         }
     }
