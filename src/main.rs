@@ -73,7 +73,10 @@ fn run (terminal: &mut Terminal<CrosstermBackend<io::Stdout>>, rx: mpsc::Receive
         while let Ok(ev) = rx.try_recv(){
             match ev {
                 net::Event::PeerFound {name, addr} => {
-                    app.peers.push(format!("{name} at {addr}"));
+                    let peer_name = format!("{name} at {addr}");
+                    if !app.peers.contains(&peer_name) {
+                        app.peers.push(peer_name);
+                    }
                     let _ = out_tx.try_send(format!("peers:{}", app.peers.len()));
                 }
                 net::Event::WebMessage {text} => {
