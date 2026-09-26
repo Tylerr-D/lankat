@@ -13,6 +13,7 @@ use crossterm::{
         enable_raw_mode,
     },
 };
+
 use std::{
     io,
     sync::mpsc,
