@@ -55,3 +55,5 @@ pub fn start(name: String, tx: Sender<Event>) {
 }
 
 // holy nested code, i think this is what is called bad code...
+
+// lol
