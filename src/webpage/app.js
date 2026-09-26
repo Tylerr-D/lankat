@@ -17,7 +17,27 @@ function send(){
     box.focus();
 }
 
+// this would be cool right?
+// yk a notifiction if you are some other tab
+
+function ping() {
+    if (document.hidden){
+        document.title = '(1) lankat';
+        const ctx = new AudioContext();
+        ctx.resume();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain).connect(ctx.destination);
+        // this is the notification sound stuff
+        osc.frequency.value = 880;
+        gain.gain.value = 0.05;
+        osc.start();
+        osc.stop(ctx.currentTime + 0.15);
+    }
+}
+
 function addMsg(text, who){
+    ping();
     const div = document.createElement('div');
     div.className = who;
     const label = document.createElement('span');
@@ -42,6 +62,10 @@ function connect(){
 ws.onopen = () => {
     status.textContent = 'connected';
     status.className='on';
+    document.title = 'lankat';
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) document.title = 'lankat';
+    });
 };
 
 ws.onmessage = (e) => {
