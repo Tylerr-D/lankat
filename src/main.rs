@@ -78,16 +78,18 @@ fn run (terminal: &mut Terminal<CrosstermBackend<io::Stdout>>, rx: mpsc::Receive
                     if !app.peers.contains(&peer_name) {
                         app.peers.push(peer_name);
                     }
-                    let _ = out_tx.try_send(format!("peers:{}", app.peers.len()));
+                    let _ = out_tx.try_send(format!("peers: {}", app.peers.len()));
                 }
                 net::Event::WebMessage {text} => {
                     app.messages.push(format!("web: {text}"));
+                }
+                net::Event::TcpMessage { from, text } => {
+                    app.messages.push(format!("tcp: {from}, {text}"));
                 }
             }
         }
 
         while event::poll(Duration::from_millis(100))? {
-
             if let Event::Key(key) = event::read()? {
                 if key.kind != KeyEventKind::Press {
                     continue;
@@ -103,7 +105,6 @@ fn run (terminal: &mut Terminal<CrosstermBackend<io::Stdout>>, rx: mpsc::Receive
                 }
             }
         }
-
     }
 }
 
