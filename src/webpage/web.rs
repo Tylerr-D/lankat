@@ -106,3 +106,4 @@ async fn ws_conn(mut socket: WebSocket, mut client_rx: tokio::sync::mpsc::Receiv
 const INDEX: &str = include_str!("index.html");
 const STYLE: &str = include_str!("style.css");
 const SCRIPT: &str = include_str!("app.js");
+

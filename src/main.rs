@@ -34,7 +34,18 @@ fn main() -> io::Result<()> {
 
     let (tx, rx) = mpsc::channel();
     let (out_tx, out_rx) = tokio::sync::mpsc::channel(64);
+    let info_tx = out_tx.clone();
+
+    std::thread::spawn(move || {
+        let name = std::env::var("USER").unwrap_or_else(|_| "me".to_string());
+        loop {
+            let _ = info_tx.try_send(format!("name:{name}"));
+            std::thread::sleep(Duration::from_secs(1));
+        }
+    });
+
     let name = std::env::var("USER").unwrap_or_else(|_| "me".to_string());
+
 
     net::start(name, tx.clone());
     web::start(tx, out_rx);
@@ -63,6 +74,7 @@ fn run (terminal: &mut Terminal<CrosstermBackend<io::Stdout>>, rx: mpsc::Receive
             match ev {
                 net::Event::PeerFound {name, addr} => {
                     app.peers.push(format!("{name} at {addr}"));
+                    let _ = out_tx.try_send(format!("peers:{}", app.peers.len()));
                 }
                 net::Event::WebMessage {text} => {
                     app.messages.push(format!("web: {text}"));

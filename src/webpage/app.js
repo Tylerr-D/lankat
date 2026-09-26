@@ -1,7 +1,11 @@
 const box = document.getElementById('box');
 const chat = document.getElementById('chat');
 const status = document.getElementById('status');
+const you = document.getElementById('you');
+const peers = document.getElementById('peers');
 const sendBtn = document.getElementById('send');
+const clearBtn = document.getElementById('clear');
+chat.innerHTML = localStorage.getItem('chat') || '';
 let ws;
 
 function send(){
@@ -25,6 +29,7 @@ function addMsg(text, who){
     div.append(label, body);
     chat.appendChild(div);
     chat.scrollTop = chat.scrollHeight;
+    localStorage.setItem('chat', chat.innerHTML);
 }
 
 
@@ -40,7 +45,10 @@ ws.onopen = () => {
 };
 
 ws.onmessage = (e) => {
-    addMsg(e.data, 'in')
+    const m = e.data;
+    if (m.startsWith('name:')) you.textContent = 'you: ' + m.slice(5);
+    else if (m.startsWith('peers:')) peers.textContent = m.slice(6) + ' online';
+    else addMsg(m, 'in');
 };
 
 ws.onclose = () => {
@@ -50,12 +58,18 @@ ws.onclose = () => {
 
 
 box.onkeydown = (e) => {
-    if (e.key === 'Enter') 
+    if (e.key === 'Enter' && !e.shiftKey) { 
+        e.preventDefault();
         send();
+    }
 };
 
 };
 sendBtn.onclick = send;
 
-connect();
+clearBtn.onclick = () => {
+    chat.innerHTML = '';
+    localStorage.removeItem('chat');
+}
 
+connect();
