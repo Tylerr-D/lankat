@@ -36,6 +36,12 @@ use crate::network::tcp;
 
 // main
 fn main() -> io::Result<()> {
+
+    if std::env::args().any(|a| a == "-V" || a == "--version") {
+        println!("lankat {}", env!("CARGO_PKG_VERSION"));
+        return Ok(());
+    }
+
     // starting whatever needs to be started
     let (tx, rx) = mpsc::channel();
     let (out_tx, out_rx) = tokio::sync::mpsc::channel(64);
