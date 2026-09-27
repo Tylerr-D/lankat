@@ -1,4 +1,5 @@
-use std::{fs, io};
+use std::{fs, io, io::Write};
+use std::net::{Ipv4Addr, SocketAddrV4, TcpStream};
 use serde::{Serialize, Deserialize};
 use base64::{Engine, engine::general_purpose};
 
@@ -57,4 +58,15 @@ impl TcpPacket {
     pub fn get_payload(&self) -> PacketType {
         self.payload.clone()
     }
+}
+
+// sends a msg to another machine running lankat over tcp
+pub(crate) fn send_text(ip: Ipv4Addr, sender: String, text: String) -> io::Result<()>{
+    let packet = TcpPacket::new_text(sender, text);
+    let json = serde_json::to_string(&packet)?;
+    let addr = SocketAddrV4::new(ip, crate::network::net::PORT);
+    let mut stream = TcpStream::connect(addr)?;
+    stream.write_all(json.as_bytes())?;
+    Ok(())
+
 }

@@ -32,6 +32,7 @@ use tui::ui;
 
 use crate::webpage::web;
 use crate::network::net;
+use crate::network::tcp;
 
 // main
 fn main() -> io::Result<()> {
@@ -44,7 +45,7 @@ fn main() -> io::Result<()> {
     thread::spawn(move || {
         let name = std::env::var("USER").unwrap_or_else(|_| "me".to_string());
         loop {
-            let _ = info_tx.try_send(format!("name:{name}"));
+            let _ = info_tx.try_send(format!("name: {name}"));
             thread::sleep(Duration::from_secs(1));
         }
     });
@@ -53,7 +54,7 @@ fn main() -> io::Result<()> {
     let name = std::env::var("USER").unwrap_or_else(|_| "me".to_string());
 
     // starting the networks, opening ports, etc, and all the threads
-    net::start(name, tx.clone());
+    net::start(name.clone(), tx.clone());
 
     // starting hosting the website
     web::start(tx, out_tx.clone(), out_rx);
@@ -66,7 +67,7 @@ fn main() -> io::Result<()> {
     execute!(stdout, EnterAlternateScreen)?;
     let mut terminal = Terminal::new(CrosstermBackend::new(stdout))?;
 
-    let res = run(&mut terminal, rx, out_tx);
+    let res = run(&mut terminal, rx, out_tx, name);
 
     // again, no clue wtf this does
     disable_raw_mode()?;
@@ -81,9 +82,10 @@ fn run(
     terminal: &mut Terminal<CrosstermBackend<io::Stdout>>,
     rx: mpsc::Receiver<net::Event>,
     out_tx: tokio::sync::mpsc::Sender<String>,
+    name: String,
 ) -> io::Result<()> {
     let mut app = App::default();
-
+    let mut peer_ip: Vec<std::net::Ipv4Addr> = Vec::new();
     loop {
         // draws the tui
         terminal.draw(|frame| ui::draw(frame, &app))?;
@@ -96,6 +98,7 @@ fn run(
                     let peer_name = format!("{name} at {addr}");
                     if !app.peers.contains(&peer_name) {
                         app.peers.push(peer_name);
+                        peer_ip.push(*addr.ip());
                     }
                 }
 
@@ -106,7 +109,17 @@ fn run(
 
                 // if the event is a new message from another lankat via tcp
                 net::Event::TcpMessage { from, text } => {
-                    app.messages.push(format!("tcp: {from}, {text}"));
+                    let display = match serde_json::from_str::<tcp::TcpPacket>(&text){
+                        Ok(p) => match p.get_payload(){
+                            tcp::PacketType::Text(t) => format!("{}: {t}", p.get_sender()),
+                            tcp::PacketType::Image {filename, .. } => {
+                                format!("[image] {}: {filename}", p.get_sender())
+                            }
+                        },
+                        Err(_) => format!("tcp: {from}, {text}"),
+                    };
+                    app.messages.push(display.clone());
+                    let _ = out_tx.try_send(display);
                 }
             }
         }
@@ -125,15 +138,10 @@ fn run(
                 let text = app.input.trim().to_string();
                 app.handle_key(key.code);
 
-                // make payload
-                let payload = serde_json::json!({
-                    "type": "text",
-                    "sender": "me",
-                    "text": text
-                }).to_string();
-
-                // send payload
-                let _ = out_tx.try_send(payload);
+                let _ = out_tx.try_send(text.clone());
+                if let Some(&ip) = peer_ip.first(){
+                    let _ = tcp::send_text(ip, name.clone(), text);
+                }
             } else if app.handle_key(key.code) {
                 return Ok(());
             }
