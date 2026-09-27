@@ -1,7 +1,8 @@
 use std::{fs, io};
-use serde::{ Serialize, Deserialize };
-use base64::{ Engine, engine::general_purpose };
+use serde::{Serialize, Deserialize};
+use base64::{Engine, engine::general_purpose};
 
+// enums and structs, self explanatory
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum PacketType {
     Text(String),
@@ -14,6 +15,8 @@ pub struct TcpPacket {
     payload: PacketType,
 }
 
+
+// tcp packet things
 impl TcpPacket {
     pub fn new_text(sender: String, message: String) -> TcpPacket {
         Self { sender, payload: PacketType::Text(message) }

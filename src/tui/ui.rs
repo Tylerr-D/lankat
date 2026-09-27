@@ -11,6 +11,7 @@ use crate::tui::app::App;
 
 // i like this idea, the ui is nice
 
+// draw the ui
 pub fn draw(frame: &mut Frame, app: &App) {
     let panels = Layout::default()
     .direction(Direction::Horizontal)
@@ -22,6 +23,7 @@ pub fn draw(frame: &mut Frame, app: &App) {
     draw_chat(frame, app, panels[1]);
 }
 
+// list the peers
 fn draw_peers(frame: &mut Frame, app:&App, area: Rect) {
     // the list of the peers
     // why is this shi so over complicated for no reason??
@@ -37,6 +39,7 @@ fn draw_peers(frame: &mut Frame, app:&App, area: Rect) {
     frame.render_widget(list, area);
 }
 
+// draw user's chat
 fn draw_chat(frame: &mut Frame, app: &App, area: Rect) {
     let rows = Layout::default()
         .direction(Direction::Vertical)

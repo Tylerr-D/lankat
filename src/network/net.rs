@@ -1,3 +1,4 @@
+// other lib imports
 use std::io::Read;
 use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4, TcpListener, UdpSocket};
 use std::sync::mpsc::Sender;
@@ -6,6 +7,7 @@ use std::time::Duration;
 
 pub const PORT: u16 = 42424;
 
+// event types
 pub enum Event {
     PeerFound {
         name: String,
@@ -20,8 +22,9 @@ pub enum Event {
     }
 }
 
-
+// all of da lights (threads)
 pub fn start(name: String, tx: Sender<Event>) {
+    // broadcast thread
     thread::spawn(move || {
         let socket = UdpSocket::bind("0.0.0.0:0").expect("announce socket");
         socket.set_broadcast(true).expect("enable broadcast");
@@ -33,6 +36,7 @@ pub fn start(name: String, tx: Sender<Event>) {
         }
     });
 
+    // udp thread
     let tx_udp = tx.clone();
     thread::spawn(move || {
         let bind_addr = SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, PORT);
@@ -59,11 +63,14 @@ pub fn start(name: String, tx: Sender<Event>) {
         }
     });
 
+    // tcp thread
     let tx_tcp = tx.clone();
     thread::spawn(move || {
+        // initialize everything
         let bind_addr = SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, PORT);
         let listener = TcpListener::bind(bind_addr).expect("tcp listener binder");
 
+        // for peers connected
         for stream in listener.incoming() {
             let Ok(mut stream) = stream else { continue };
             let Ok(peer_addr) = stream.peer_addr() else { continue };

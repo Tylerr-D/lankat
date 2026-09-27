@@ -1,7 +1,9 @@
+// module declaration
 pub mod tui;
 pub mod network;
 pub mod webpage;
 
+// Other library imports
 use crossterm::{
     event::{self, Event, KeyCode, KeyEventKind},
     execute,
@@ -13,94 +15,113 @@ use crossterm::{
         enable_raw_mode,
     },
 };
-
 use std::{
     io,
     sync::mpsc,
     time::Duration,
+    thread,
 };
-
 use ratatui::{
     Terminal,
     backend::CrosstermBackend,
 };
 
+// imports of us
 use tui::app::App;
 use tui::ui;
 
 use crate::webpage::web;
 use crate::network::net;
 
+// main
 fn main() -> io::Result<()> {
-
+    // starting whatever needs to be started
     let (tx, rx) = mpsc::channel();
     let (out_tx, out_rx) = tokio::sync::mpsc::channel(64);
     let info_tx = out_tx.clone();
 
-    std::thread::spawn(move || {
+    // getting user on a separate thread for some reason
+    thread::spawn(move || {
         let name = std::env::var("USER").unwrap_or_else(|_| "me".to_string());
         loop {
             let _ = info_tx.try_send(format!("name:{name}"));
-            std::thread::sleep(Duration::from_secs(1));
+            thread::sleep(Duration::from_secs(1));
         }
     });
 
+    // fallback
     let name = std::env::var("USER").unwrap_or_else(|_| "me".to_string());
 
-
+    // starting the networks, opening ports, etc, and all the threads
     net::start(name, tx.clone());
+
+    // starting hosting the website
     web::start(tx, out_tx.clone(), out_rx);
 
+    // no clue wtf this does
     enable_raw_mode()?;
+
+    // setting stdout as a variable
     let mut stdout = io::stdout();
     execute!(stdout, EnterAlternateScreen)?;
     let mut terminal = Terminal::new(CrosstermBackend::new(stdout))?;
 
     let res = run(&mut terminal, rx, out_tx);
 
+    // again, no clue wtf this does
     disable_raw_mode()?;
     execute!(terminal.backend_mut(), LeaveAlternateScreen)?;
     terminal.show_cursor()?;
     res
 }
 
+// dun dun dun
+// run all the main loop
 fn run (terminal: &mut Terminal<CrosstermBackend<io::Stdout>>, rx: mpsc::Receiver<net::Event>, out_tx: tokio::sync::mpsc::Sender<String>,) -> io::Result<()> {
-
     let mut app = App::default();
 
     loop {
+        // draws the tui
         terminal.draw(|frame| ui::draw(frame, &app))?;
 
-        while let Ok(ev) = rx.try_recv(){
+        // when new event
+        while let Ok(ev) = rx.try_recv() {
             match ev {
-                net::Event::PeerFound {name, addr} => {
+                // if the event is a peer found
+                net::Event::PeerFound { name, addr } => {
                     let peer_name = format!("{name} at {addr}");
                     if !app.peers.contains(&peer_name) {
                         app.peers.push(peer_name);
                     }
                     let _ = out_tx.try_send(format!("peers: {}", app.peers.len()));
                 }
-                net::Event::WebMessage {text} => {
+
+                // if the event is a new message from the web
+                net::Event::WebMessage { text } => {
                     app.messages.push(format!("web: {text}"));
                 }
+
+                // if the event is a new message from another lankat via tcp
                 net::Event::TcpMessage { from, text } => {
                     app.messages.push(format!("tcp: {from}, {text}"));
                 }
             }
         }
 
+        // smth
         while event::poll(Duration::from_millis(100))? {
+            // if key press, then change smth of the ui
             if let Event::Key(key) = event::read()? {
                 if key.kind != KeyEventKind::Press {
                     continue;
                 }
-                if key.code == KeyCode::Enter && !app.input.trim().is_empty(){
+                // if key pressed is enter, then send message, else if smth, stop
+                if key.code == KeyCode::Enter && !app.input.trim().is_empty() {
                     let text = app.input.trim().to_string();
                     app.handle_key(key.code);
 
                     let _ = out_tx.try_send(text);
-                }
-                else if app.handle_key(key.code){
+                } else if app.handle_key(key.code) {
                     return Ok(());
                 }
             }

@@ -1,3 +1,4 @@
+// other lib imports
 use std::sync::mpsc::Sender;
 use std::sync::{Arc, Mutex};
 
@@ -14,6 +15,7 @@ use axum::{
 
 type Clients = Arc<Mutex<Vec<tokio::sync::mpsc::Sender<String>>>>;
 
+// structs
 #[derive(Clone)]
 struct WebState {
     tx: Sender<crate::network::net::Event>,
@@ -21,7 +23,13 @@ struct WebState {
     clients: Clients,
 }
 
-pub fn start(tx: Sender<crate::network::net::Event>, out_tx: tokio::sync::mpsc::Sender<String>,  mut outbox: tokio::sync::mpsc::Receiver<String>){
+// start the webpage on port 8080
+pub fn start(
+    tx: Sender<crate::network::net::Event>,
+    out_tx: tokio::sync::mpsc::Sender<String>,
+    mut outbox: tokio::sync::mpsc::Receiver<String>
+){
+    // thread for
     std::thread::spawn(move || {
         let rt = tokio::runtime::Runtime::new().expect("tokio runtime");
         let clients: Clients = Arc::new(Mutex::new(Vec::new()));
@@ -46,6 +54,7 @@ pub fn start(tx: Sender<crate::network::net::Event>, out_tx: tokio::sync::mpsc::
     });
 }
 
+// the actual starter
 async fn serve(state: WebState){
     let app = Router::new()
     .route("/", get(index))
@@ -60,6 +69,7 @@ async fn serve(state: WebState){
     axum::serve(listener, app).await.expect("axum serve");
 }
 
+// html linking thing
 async fn index() -> Html<&'static str> {
     Html(INDEX)
 }
@@ -72,7 +82,11 @@ async fn script() -> Response {
     ([(header::CONTENT_TYPE, "text/javascript")], SCRIPT).into_response()
 }
 
-async fn ws_upgrade(State(state): State<WebState>, ws: WebSocketUpgrade) -> Response {
+// no clue what this does, or why its named that
+async fn ws_upgrade(
+    State(state): State<WebState>,
+    ws: WebSocketUpgrade
+) -> Response {
     ws.on_upgrade(move |socket| {
         let (client_tx, client_rx) = tokio::sync::mpsc::channel(64);
         state.clients.lock().unwrap().push(client_tx);
@@ -80,6 +94,7 @@ async fn ws_upgrade(State(state): State<WebState>, ws: WebSocketUpgrade) -> Resp
     })
 }
 
+// display messages here
 async fn ws_conn(mut socket: WebSocket, mut client_rx: tokio::sync::mpsc::Receiver<String>, tx:Sender<crate::network::net::Event>, out_tx: tokio::sync::mpsc::Sender<String>){
     loop {
         tokio::select! {
