@@ -77,7 +77,11 @@ fn main() -> io::Result<()> {
 
 // dun dun dun
 // run all the main loop
-fn run (terminal: &mut Terminal<CrosstermBackend<io::Stdout>>, rx: mpsc::Receiver<net::Event>, out_tx: tokio::sync::mpsc::Sender<String>,) -> io::Result<()> {
+fn run(
+    terminal: &mut Terminal<CrosstermBackend<io::Stdout>>,
+    rx: mpsc::Receiver<net::Event>,
+    out_tx: tokio::sync::mpsc::Sender<String>,
+) -> io::Result<()> {
     let mut app = App::default();
 
     loop {
@@ -93,7 +97,6 @@ fn run (terminal: &mut Terminal<CrosstermBackend<io::Stdout>>, rx: mpsc::Receive
                     if !app.peers.contains(&peer_name) {
                         app.peers.push(peer_name);
                     }
-                    let _ = out_tx.try_send(format!("peers: {}", app.peers.len()));
                 }
 
                 // if the event is a new message from the web
@@ -109,21 +112,30 @@ fn run (terminal: &mut Terminal<CrosstermBackend<io::Stdout>>, rx: mpsc::Receive
         }
 
         // smth
-        while event::poll(Duration::from_millis(100))? {
-            // if key press, then change smth of the ui
-            if let Event::Key(key) = event::read()? {
-                if key.kind != KeyEventKind::Press {
-                    continue;
-                }
-                // if key pressed is enter, then send message, else if smth, stop
-                if key.code == KeyCode::Enter && !app.input.trim().is_empty() {
-                    let text = app.input.trim().to_string();
-                    app.handle_key(key.code);
+        if event::poll(Duration::from_millis(10))? {
+            let Event::Key(key) = event::read()? else { continue };
 
-                    let _ = out_tx.try_send(text);
-                } else if app.handle_key(key.code) {
-                    return Ok(());
-                }
+            // if key press, then change smth of the ui
+            if key.kind != KeyEventKind::Press {
+                continue;
+            }
+
+            // if key pressed is enter, then send message, else if smth, stop
+            if key.code == KeyCode::Enter && !app.input.trim().is_empty() {
+                let text = app.input.trim().to_string();
+                app.handle_key(key.code);
+
+                // make payload
+                let payload = serde_json::json!({
+                    "type": "text",
+                    "sender": "me",
+                    "text": text
+                }).to_string();
+
+                // send payload
+                let _ = out_tx.try_send(payload);
+            } else if app.handle_key(key.code) {
+                return Ok(());
             }
         }
     }
