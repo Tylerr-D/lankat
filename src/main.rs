@@ -49,7 +49,7 @@ fn main() -> io::Result<()> {
 
 
     net::start(name, tx.clone());
-    web::start(tx, out_rx);
+    web::start(tx, out_tx.clone(), out_rx);
 
     enable_raw_mode()?;
     let mut stdout = io::stdout();

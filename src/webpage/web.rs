@@ -17,14 +17,15 @@ type Clients = Arc<Mutex<Vec<tokio::sync::mpsc::Sender<String>>>>;
 #[derive(Clone)]
 struct WebState {
     tx: Sender<crate::network::net::Event>,
+    out_tx: tokio::sync::mpsc::Sender<String>,
     clients: Clients,
 }
 
-pub fn start(tx: Sender<crate::network::net::Event>, mut outbox: tokio::sync::mpsc::Receiver<String>){
+pub fn start(tx: Sender<crate::network::net::Event>, out_tx: tokio::sync::mpsc::Sender<String>,  mut outbox: tokio::sync::mpsc::Receiver<String>){
     std::thread::spawn(move || {
         let rt = tokio::runtime::Runtime::new().expect("tokio runtime");
         let clients: Clients = Arc::new(Mutex::new(Vec::new()));
-        let state = WebState {tx, clients: clients.clone()};
+        let state = WebState {tx, out_tx, clients: clients.clone()};
 
         let drain = async move {
             while let Some(text) = outbox.recv().await {
@@ -75,18 +76,19 @@ async fn ws_upgrade(State(state): State<WebState>, ws: WebSocketUpgrade) -> Resp
     ws.on_upgrade(move |socket| {
         let (client_tx, client_rx) = tokio::sync::mpsc::channel(64);
         state.clients.lock().unwrap().push(client_tx);
-        ws_conn(socket, client_rx, state.tx.clone())
+        ws_conn(socket, client_rx, state.tx.clone(), state.out_tx.clone())
     })
 }
 
-async fn ws_conn(mut socket: WebSocket, mut client_rx: tokio::sync::mpsc::Receiver<String>, tx:Sender<crate::network::net::Event>){
+async fn ws_conn(mut socket: WebSocket, mut client_rx: tokio::sync::mpsc::Receiver<String>, tx:Sender<crate::network::net::Event>, out_tx: tokio::sync::mpsc::Sender<String>){
     loop {
         tokio::select! {
             msg = socket.recv() => match msg {
-             Some(Ok(Message::Text(text))) => {
-                    tx.send(crate::network::net::Event::WebMessage {
+                Some(Ok(Message::Text(text))) => {
+                    tx.send(crate::network::net::Event::WebMessage{
                         text: text.to_string()
                     }).ok();
+                     let _ = out_tx.try_send(text.to_string());
                 }
                 Some(Ok(_)) => {}
                 _ => break,

@@ -8,11 +8,21 @@ const clearBtn = document.getElementById('clear');
 chat.innerHTML = localStorage.getItem('chat') || '';
 let ws;
 
+let myName = localStorage.getItem('name') || 'anon_' + Math.floor(Math.random() * 9000);
+you.textContent = myName;
+you.onclick = () => {
+    const n = prompt('choose a name:', myName);
+    if (n && n.trim()){
+        myName = n.trim();
+        localStorage.setItem('name', myName);
+        you.textContent = myName;
+    }
+};
+
 function send(){
     const text = box.value.trim();
     if (!text || ws.readyState !== WebSocket.OPEN) return;
-    ws.send(text);
-    addMsg(text, 'me');
+    ws.send(myName + ': ' + text);
     box.value = '';
     box.focus();
 }
@@ -36,6 +46,10 @@ function ping() {
     }
 }
 
+function atBottom (){
+    return chat.scrollHeight - chat.scrollTop - chat.clientHeight < 40;
+}
+
 function addMsg(text, who){
     ping();
     const div = document.createElement('div');
@@ -43,15 +57,23 @@ function addMsg(text, who){
     const label = document.createElement('span');
     label.className = 'who';
     const time = new Date().toTimeString().slice(0, 5);
-    label.textContent = (who === 'me' ? 'me' : 'peer') +' - ' + time;
-    const body = document.createElement("span");
-    body.textContent = text;
-    div.append(label, body);
+    let name = who == 'me' ? myName : 'peer';
+    let body = text;
+    if (who === 'in'){
+        const i = text.indexOf(': ');
+        if (i> 0 ){
+            name = text.slice(0, i);
+            body = text.slice(i + 2);
+        }
+    }
+    label.textContent = name + ' - ' + time;
+    const b = document.createElement("span");
+    b.textContent = body;
+    div.append(label, b);
     chat.appendChild(div);
-    chat.scrollTop = chat.scrollHeight;
+    if (atBottom()) chat.scrollTop = chat.scrollHeight;
     localStorage.setItem('chat', chat.innerHTML);
 }
-
 
 function connect(){
     ws = new WebSocket(`ws://${location.host}/ws`);
@@ -70,8 +92,8 @@ ws.onopen = () => {
 
 ws.onmessage = (e) => {
     const m = e.data;
-    if (m.startsWith('name:')) you.textContent = 'you: ' + m.slice(5);
-    else if (m.startsWith('peers:')) peers.textContent = m.slice(6) + ' online';
+    if (m.startsWith('name:')) return;
+    if (m.startsWith('peers:')) peers.textContent = m.slice(6) + ' online';
     else addMsg(m, 'in');
 };
 
