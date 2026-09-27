@@ -1,51 +1,57 @@
-use std::io;
-use std::io::Write;
-use std::net::{Ipv4Addr, SocketAddrV4, TcpStream};
+use std::{fs, io};
+use serde::{ Serialize, Deserialize };
+use base64::{ Engine, engine::general_purpose };
 
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub enum PacketType {
+    Text(String),
+    Image { filename: String, data: String },
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 pub struct TcpPacket {
-    ip: Ipv4Addr,
-    port: u16,
-    address: SocketAddrV4,
-    header: String,
-    message: String,
+    sender: String,
+    payload: PacketType,
 }
 
 impl TcpPacket {
-    pub fn new(ip: Ipv4Addr, port: u16, header: String, message: String) -> TcpPacket {
-        let address = SocketAddrV4::new(ip, port);
-
-        Self { ip, port, address, header, message }
+    pub fn new_text(sender: String, message: String) -> TcpPacket {
+        Self { sender, payload: PacketType::Text(message) }
     }
 
-    pub fn get_ip(&self) -> Ipv4Addr {
-        self.ip
+    pub fn new_image(sender: String, file_name: &str) -> io::Result<TcpPacket> {
+        let bytes = fs::read(file_name)?;
+        let base64_data = general_purpose::STANDARD.encode(&bytes);
+
+        let ext = std::path::Path::new(file_name)
+            .extension()
+            .and_then(|e| e.to_str())
+            .unwrap_or("png");
+
+        let mime = match ext.to_lowercase().as_str() {
+            "jpg" | "jpeg" => "image/jpeg",
+            "gif" => "image/gif",
+            "webp" => "image/webp",
+            "svg" => "image/svg+xml",
+            _ => "image/png",
+        };
+
+        let data_uri = format!("data:{mime};base64,{base64_data}");
+
+        Ok(TcpPacket {
+            sender,
+            payload: PacketType::Image {
+                filename: file_name.to_string(),
+                data: data_uri,
+            },
+        })
     }
 
-    pub fn get_port(&self) -> u16 {
-        self.port
+    pub fn get_sender(&self) -> String {
+        self.sender.parse().unwrap()
     }
 
-    pub fn get_address(&self) -> SocketAddrV4 {
-        self.address
+    pub fn get_payload(&self) -> PacketType {
+        self.payload.clone()
     }
-
-    pub fn get_header(&self) -> String {
-        self.header.clone()
-    }
-
-    pub fn get_message(&self) -> String {
-        self.message.clone()
-    }
-}
-
-pub(crate) fn send_message(tcp_packet: TcpPacket) -> io::Result<()> {
-    let target_ip = tcp_packet.get_address();
-
-    let mut stream = TcpStream::connect(target_ip)?;
-
-    let payload = tcp_packet.message;
-    stream.write_all(payload.as_ref())?;
-    stream.flush()?;
-
-    Ok(())
 }
