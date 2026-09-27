@@ -1,6 +1,6 @@
 # project_name
 
-project_badge
+[project_badge]([![project_name](https://img.shields.io/badge/GitHub-project_name-green?style=plastic)](https://www.github.com/Tylerr-D/project_name))
 
 > project_keynote
 
