@@ -3,7 +3,7 @@
     box-sizing: border-box;
 }
 
-/*clean of boi*/
+/*clean af boi*/
 
 body {
     background: #0d1117;
@@ -146,4 +146,14 @@ h1 {
 
 #you:hover {
     color: #e6edf3;
+}
+
+#chat div:hover {
+    filter: brightness(1.15);
+}
+
+#chat div .copied{
+    margin-left: 8px;
+    font-size: 10px;
+    color: #58a6ff;
 }
