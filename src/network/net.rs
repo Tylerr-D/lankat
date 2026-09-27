@@ -25,11 +25,12 @@ pub enum Event {
 // all of da lights (threads)
 pub fn start(name: String, tx: Sender<Event>) {
     // broadcast thread
-    thread::spawn(move || {
         let socket = UdpSocket::bind("0.0.0.0:0").expect("announce socket");
         socket.set_broadcast(true).expect("enable broadcast");
+        let my_port = socket.local_addr().expect("announce addr").port();
         let packet = format!("lankat:{name}");
 
+    thread::spawn(move || {
         loop {
             socket.send_to(packet.as_bytes(), ("255.255.255.255", PORT)).ok();
             thread::sleep(Duration::from_secs(1));
@@ -49,6 +50,7 @@ pub fn start(name: String, tx: Sender<Event>) {
             let (n, addr) = socket.recv_from(&mut buf).expect("receive");
 
             let SocketAddr::V4(v4_addr) = addr else { continue };
+            if v4_addr.port() == my_port { continue; }
 
             let Some(rest) = buf[..n].strip_prefix(b"lankat:") else { continue };
 

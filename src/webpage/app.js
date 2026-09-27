@@ -1,3 +1,8 @@
+// this got no documentation lol
+// should i write some? :thonk:
+
+
+// js the imports from the html page
 const box = document.getElementById('box');
 const chat = document.getElementById('chat');
 const status = document.getElementById('status');
@@ -23,6 +28,7 @@ function send(){
     const text = box.value.trim();
     if (!text || ws.readyState !== WebSocket.OPEN) return;
     ws.send(myName + ': ' + text);
+    addMsg(text, 'me');
     box.value = '';
     box.focus();
 }
@@ -94,7 +100,11 @@ ws.onmessage = (e) => {
     const m = e.data;
     if (m.startsWith('name:')) return;
     if (m.startsWith('peers:')) peers.textContent = m.slice(6) + ' online';
-    else addMsg(m, 'in');
+    else {
+        const i = m.indexOf(': ');
+        if (i > 0 && m.slice(0, i) === myName) return;
+        addMsg(m, 'in');
+    }
 };
 
 ws.onclose = () => {
@@ -119,3 +129,6 @@ clearBtn.onclick = () => {
 }
 
 connect();
+
+// omg why does this still msgs twice???????
+// aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
