@@ -1,21 +1,21 @@
-# project_name
+# lankat
 
 [project_badge]([![project_name](https://img.shields.io/badge/GitHub-project_name-green?style=plastic)](https://www.github.com/Tylerr-D/project_name))
 
-> project_keynote
+> send messages! (through lan)
 
 ---
 
 ## Features
 
-*   **feature1_name**: feature1_detail
+*   **Browser**: You can text anyone via a browser
+*   **TCP**: You can text anyone using lankat in your lan via tcp
 
 ## Stack
 
-*   **Frontend:**   project_frontend
-*   **Backend:**    project_backend
-*   **Database:**   project_database
-*   **Styling:**    project_styling
+*   **Frontend:**   RataTUI
+*   **Backend:**    Rust
+*   **Styling:**    Compartmentalizing? Sectioning? stuff idk
 
 ---
 
@@ -31,14 +31,14 @@ None (Unless you want to build it from source)
 
 **Download it**
 
-Get the latest release from github_url
+Get the latest release from [https://github.com/Tylerr-D/lankat](https://github.com/Tylerr-D/lankat)
 
->**Note:** The name of the executable will be "project_name-*", where * is the version number, and build version,
-> remember to type the full name when executing like ```./project_name-* -V``` , or rename it from "project_name-*" to "project_name"
+>**Note:** The name of the executable will be "lankat-*", where * is the version number, and build version,
+> remember to type the full name when executing like ```./lankat-* -V``` , or rename it from "lankat-*" to "lankat"
 
 > If you downloaded, most likely it is in the downloads directory,
 > so either move it to the home directory (/home/user/) or run ```cd ~/Downloads``` before
-> doing ```./project_name```
+> doing ```./lankat```
 
 
 Or download from command line, like this:
@@ -47,15 +47,15 @@ Or download from command line, like this:
 #### Download
 
 ```shell
-curl -L github_releases_url -o project_name
-chmod +x project_name
+curl -L github_releases_url -o lankat
+chmod +x lankat
 ```
 
 > Always check what you are running, don't run random commands you find on the internet.
 
 Done!, add to path to run anywhere or run from home like:
 ```shell
-./project_name -V
+./lankat -V
 ```
 
 ## Building from Source
@@ -67,8 +67,8 @@ Done!, add to path to run anywhere or run from home like:
 2. **Clone the repository:**
 
 ```shell
-git clone github_url.git
-cd project_name
+git clone https://github.com/Tylerr-D/lankat.git
+cd lankat
 ```
 
 
@@ -85,7 +85,7 @@ cargo build --release
    Now test the binary with:
 
 ```shell
-./project_name -V
+./lankat -V
 ```
 
 5. Add to alias:    
@@ -94,26 +94,27 @@ cargo build --release
 If using Bash:
 
 ```shell
-mv project_name .local/bin/
-echo 'alias project_name="./.local/bin/project_name"' >> .bashrc
+mv lankat .local/bin/
+echo 'alias lankat="./.local/bin/lankat"' >> .bashrc
 ```
 
 If using Zsh:
 
 ```shell
-mv project_name ~/local/bin/project_name
-echo 'alias project_name="./.local/bin/project_name"' >> .bashrc
+mv lankat ~/local/bin/lankat
+echo 'alias lankat="./.local/bin/lankat"' >> .bashrc
 ```
 
 If using Fish:
 
 ```shell
-mv project_name ~/local/bin/project_name
-abbr -a project_name "./.local/bin/project_name"
+mv lankat ~/local/bin/lankat
+abbr -a lankat "./.local/bin/lankat"
 ```
 
 ## Contributors
-*   contributer1_badge
+*   **[![Amaan](https://img.shields.io/badge/GitHub-MiniGun1239-orange?style=plastic)](https://www.github.com/MiniGun1239)**
+*   **[![Ruster](https://img.shields.io/badge/GitHub-Ruster-orange?style=plastic)](https://www.github.com/Tylerr-D)**
 
 > Coded and tested in operating_systems_working, should work in any distro.
 
